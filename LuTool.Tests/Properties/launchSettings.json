@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TC.Flight.Tools.UnitTest": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DAOKEAPPUK": "flight.netcore.diting"
+      }
+    }
+  }
+}

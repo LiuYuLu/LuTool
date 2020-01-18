@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>bin\Debug\LuTool.Etcd.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\LuTool.Etcd.xml</DocumentationFile>
+    </PropertyGroup>
+
+
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.10.1" />
+        <PackageReference Include="Grpc.Core" Version="2.23.1" />
+        <PackageReference Include="Grpc.Tools" Version="2.23.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+        <PackageReference Include="Grpc.Net.ClientFactory">
+            <Version>2.23.2</Version>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+        <PackageReference Include="Grpc.Net.ClientFactory">
+            <Version>2.23.2</Version>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="grpc\proto\auth.proto" GrpcServices="Client" />
+        <Protobuf Include="grpc\proto\election.proto" GrpcServices="Client" />
+        <Protobuf Include="grpc\proto\kv.proto" GrpcServices="Client" />
+        <Protobuf Include="grpc\proto\lock.proto" GrpcServices="Client" />
+        <Protobuf Include="grpc\proto\rpc.proto" GrpcServices="Client" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,94 @@
+kind: pipeline
+name: istr
+workspace:
+  base: /data/netcore
+  path: istr
+
+steps:
+#- name: clone
+#  image: alpine:git
+#  commands:
+#  - git fetch --tags
+
+- name: build
+  image: mcr.microsoft.com/dotnet/core/sdk:3.0
+  commands:
+    - echo '==================== 查看打包环境 ====================' 
+    - pwd
+    - ls
+    - echo $PATH
+    - whoami
+    - which dotnet
+    - dotnet --info
+    - dotnet --version
+#    - echo '==================== begin restore ===================='
+#    - dotnet restore
+#    - echo '==================== end restore ===================='
+    - echo '==================== cd project ===================='
+    #- dotnet build .
+    #- cd ./您的项目路径
+    - echo '==================== begin build ===================='
+    - dotnet build # 为了生成XML注释文件 用于swagger注释
+#      - rm -rf publish
+#      - mkdir publish
+    - dotnet publish -c:Release -o ./publish
+    #- cp ./bin/Debug/netcoreapp2.0/您的项目路径.xml $WORKSPACE/jenkins_publish/ # 拷贝swagger注释
+    - echo '==================== end build ===================='
+    - pwd
+    - ls -la
+#  when: 
+#     event: tag  # step的条件化执行，仅当 tag 事件时执行这个阶段
+      
+- name: publish
+  image: plugins/docker
+  environment:
+    TOKEN:
+      from_secret: one_of_the_tokens
+  settings:
+    username: 
+      from_secret: docker_username
+    password: 
+      from_secret: docker_password
+    registry: home.istr.cn:58082
+    repo: home.istr.cn:58082/jade/istr
+    auto_tag: true #事件类型是 tag 时，插件会自动使用标准的 major、minor、release 惯例为镜像创建 tag，push时，插件会自动为添加 latest 这个 tag
+    tags: latest
+    insecure: true # 本地仓库，如果出错加上，启用对此 registry 的不安全通信
+    mirror: # 使用 registry 镜像，而不是直接从 Docker 默认的 Hub 中获取镜像
+
+- name: deploy
+  image: appleboy/drone-ssh
+  pull: true
+  settings:
+    host: 192.168.50.20
+    port: 22
+    username: 
+      from_secret: ssh_username
+    password: 
+      from_secret: ssh_password
+    script:
+#      - cd /data
+#      - mkdir app/
+#      - cd /data/app
+      - docker rm -f istr
+      - docker rmi -f home.istr.cn:58082/jade/istr
+      - echo "login docker"
+      - docker login -u dokcerhost -p dockerhost home.istr.cn:58082
+      - echo "login success, pulling..."
+      - docker pull home.istr.cn:58082/jade/istr:latest
+      - echo "image running"
+      - docker run --name istr -p 48919:48919 -d -v /etc/timezone:/etc/timezone -v /ect/localtime:/ect/localtime --restart=always home.istr.cn:58082/jade/istr:latest
+      - echo "run success"
+
+
+trigger:
+#   event:
+#     - tag
+  branch:
+    - master
+
+# 设置
+# docker_username
+# docker_password
+# ssh_username
+# ssh_password
